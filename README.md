@@ -17,7 +17,7 @@ High details must be available on the texture (you can read place names if you a
 
 * Open Unity project and build it for iOS platform
 * Navigate to the generated folder (your chosen name)
-* Open Xcode project navigate to assets, drag and drop AppIcon.appiconset folder from root folder to assets in Xcode
+* Open Xcode project and navigate to assets, drag and drop AppIcon.appiconset folder from root folder to assets in Xcode
 * Go to Build Settings and set Enable Bitcode to NO
 * Remove mapbox resources from Build Phases -> Copy Bundle Resources if there are any
 * After that it should be ready for building (Product -> Build) or release (Product -> Archive)
