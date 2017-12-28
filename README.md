@@ -11,3 +11,13 @@ Transparency settings (if it looks good).
 
 Switching the texture of the globes (there are 4 globes at least)
 High details must be available on the texture (you can read place names if you are close).
+
+
+## Build
+
+* Open Unity project and build it for iOS platform
+* Navigate to the generated folder (your chosen name)
+* Open Xcode project navigate to assets, drag and drop AppIcon.appiconset folder from root folder to assets in Xcode
+* Go to Build Settings and set Enable Bitcode to NO
+* Remove mapbox resources from Build Phases -> Copy Bundle Resources if there are any
+* After that it should be ready for building (Product -> Build) or release (Product -> Archive)
