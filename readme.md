@@ -1,15 +1,16 @@
-How to submit new version
-*Prerequisities:
+<h2>How to submit new version</h2>
+
+<b>Prerequisities:</b>
 1. Visual Studio Community (does not work with Code).
 2. Windows 10 SDK.
 3. Platform SDK (verified is 10.0.10240.0 but it should work with newer).
 
-*Unity:
+<b>Unity:</b>
 1. Set project target platform to "UWP".
 2. Set build configuration to "Master".
 3. Build.
 
-*Visual Studio:
+<b>Visual Studio:</b>
 1. When the Unity build finishes, open the output .sln.
 2. Open "Package.appxmanifest" in the main project.
 3. Check "Packaging" tab to have the correct publisher certificate.
@@ -20,7 +21,7 @@ How to submit new version
 8. Enable "ARM" as target architecture.
 9. Press "Create" to make the build.
 
-*MS Store:
+<b>MS Store:</b>
 1. Go to https://partner.microsoft.com/ and sign in.
 2. Open "Partner Center" and select "Applications and Games".
 3. Pick the application to update from the list.
