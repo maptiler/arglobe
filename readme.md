@@ -14,12 +14,13 @@
 1. When the Unity build finishes, open the output .sln.
 2. Open "Package.appxmanifest" in the main project.
 3. Check "Packaging" tab to have the correct publisher certificate.
-4. Download the correct certificate if necessary by pressing the "Choose Certificate" button.
-5. Pick it by pressing "Select from store" (login to the appropriate Microsoft account with the access to the publishing site is needed) and follow the on-screen instructions.
-6. Right click on the main project root -> Publish -> Create App Packages.
+4. (Optional) Download the correct certificate if necessary by pressing the "Choose Certificate" button.
+5. (Optional) Pick it by pressing "Select from store" (login to the appropriate Microsoft account with the access to the publishing site is needed) and follow the on-screen instructions.
+6. Right click on the main project root -> Publish -> Create App Packages..
 7. Pick the "Microsoft Store as <app_name>" option.
-8. Enable "ARM" as target architecture.
-9. Press "Create" to make the build.
+8. Associate the project with the store submission if not done already
+9. Enable "ARM" as target architecture.
+10. Press "Create" to make the build.
 
 <b>MS Store:</b>
 1. Go to https://partner.microsoft.com/ and sign in.
