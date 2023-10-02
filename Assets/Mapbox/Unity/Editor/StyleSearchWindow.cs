@@ -6,8 +6,9 @@
 	using Mapbox.Unity;
 	using Mapbox.Json;
 	using Mapbox.Unity.Utilities;
-	using Mapbox.Unity.MeshGeneration.Factories;
+	using Mapbox.Unity.Map;
 	using System.Collections;
+	using UnityEngine.Networking;
 
 	public class StyleSearchWindow : EditorWindow
 	{
@@ -27,18 +28,18 @@
 
 		void OnEnable()
 		{
-			EditorApplication.playmodeStateChanged += OnModeChanged;
+			EditorApplication.playModeStateChanged += OnModeChanged;
 		}
 
 		void OnDisable()
 		{
-			EditorApplication.playmodeStateChanged -= OnModeChanged;
+			EditorApplication.playModeStateChanged -= OnModeChanged;
 		}
 
 		public static void Open(SerializedProperty property)
 		{
 			StyleSearchWindow window = GetWindow<StyleSearchWindow>(true, "Search for style");
-			
+
 			window._property = property;
 			window._username = property.FindPropertyRelative("UserName").stringValue;
 			if (!string.IsNullOrEmpty(window._username))
@@ -50,10 +51,10 @@
 			Event e = Event.current;
 			Vector2 mousePos = GUIUtility.GUIToScreenPoint(e.mousePosition);
 			window.position = new Rect(mousePos.x - width, mousePos.y, width, height);
-			window.minSize = new Vector2(400,500);
+			window.minSize = new Vector2(400, 500);
 		}
 
-		void OnModeChanged()
+		void OnModeChanged(PlayModeStateChange state)
 		{
 			Close();
 		}
@@ -67,7 +68,7 @@
 			EditorGUILayout.HelpBox("User styles are bound to usernames, enter your Mapbox Username to search for your personal styles.", MessageType.Info);
 			_username = EditorGUILayout.TextField("Mapbox Username: ", _username);
 
-			
+
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos, st);
 
 			if (_username.Length == 0)
@@ -81,6 +82,8 @@
 					if (GUILayout.Button("Search"))
 					{
 						Search(_username);
+						_property.FindPropertyRelative("UserName").stringValue = _username;
+						_property.serializedObject.ApplyModifiedProperties();
 					}
 				}
 
@@ -132,7 +135,7 @@
 
 			EditorGUILayout.EndScrollView();
 
-			
+
 		}
 
 		void Search(string searchString)
@@ -147,6 +150,23 @@
 
 		IEnumerator ListStyles(string token)
 		{
+#if UNITY_2017_1_OR_NEWER
+			UnityWebRequest webRequest = new UnityWebRequest(Utils.Constants.BaseAPI + string.Format("styles/v1/{0}?access_token={1}", _username, token))
+			{
+				downloadHandler = new DownloadHandlerBuffer()
+			};
+			yield return webRequest.SendWebRequest();
+
+			while (!webRequest.isDone)
+			{
+				yield return 0;
+			}
+			var json = webRequest.downloadHandler.text;
+			if (!string.IsNullOrEmpty(json))
+			{
+				ParseResponse(json);
+			}
+#else
 			// "https://api.mapbox.com/styles/v1/{username}?access_token=your-access-token"
 			var www = new WWW(Utils.Constants.BaseAPI + string.Format("styles/v1/{0}?access_token={1}", _username, token));
 			while (!www.isDone)
@@ -158,6 +178,7 @@
 			{
 				ParseResponse(json);
 			}
+#endif
 		}
 
 		void ParseResponse(string json)

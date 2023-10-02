@@ -7,10 +7,10 @@ namespace Mapbox.Map
 {
 	using Platform;
 	using System;
+	using Mapbox.Unity.Telemetry;
 
-	internal sealed class TileResource : IResource
+	public sealed class TileResource : IResource
 	{
-		static readonly string _eventQuery = "events=true";
 		readonly string _query;
 
 		internal TileResource(string query)
@@ -28,29 +28,29 @@ namespace Mapbox.Map
 			return new TileResource(string.Format("{0}/{1}@2x", MapUtils.NormalizeStaticStyleURL(styleUrl ?? "mapbox://styles/mapbox/satellite-v9"), id));
 		}
 
-		public static TileResource MakeClassicRaster(CanonicalTileId id, string mapId)
+		public static TileResource MakeClassicRaster(CanonicalTileId id, string tilesetId)
 		{
-			return new TileResource(string.Format("{0}/{1}.jpg", MapUtils.MapIdToUrl(mapId ?? "mapbox.satellite"), id));
+			return new TileResource(string.Format("{0}/{1}.jpg", MapUtils.TilesetIdToUrl(tilesetId ?? "mapbox.satellite"), id));
 		}
 
-		internal static TileResource MakeClassicRetinaRaster(CanonicalTileId id, string mapId)
+		internal static TileResource MakeClassicRetinaRaster(CanonicalTileId id, string tilesetId)
 		{
-			return new TileResource(string.Format("{0}/{1}@2x.png", MapUtils.MapIdToUrl(mapId ?? "mapbox.satellite"), id));
+			return new TileResource(string.Format("{0}/{1}@2x.png", MapUtils.TilesetIdToUrl(tilesetId ?? "mapbox.satellite"), id));
 		}
 
-		public static TileResource MakeRawPngRaster(CanonicalTileId id, string mapId)
+		public static TileResource MakeRawPngRaster(CanonicalTileId id, string tilesetId)
 		{
-			return new TileResource(string.Format("{0}/{1}.pngraw", MapUtils.MapIdToUrl(mapId ?? "mapbox.terrain-rgb"), id));
+			return new TileResource(string.Format("{0}/{1}.pngraw", MapUtils.TilesetIdToUrl(tilesetId ?? "mapbox.terrain-rgb"), id));
 		}
 
-		public static TileResource MakeVector(CanonicalTileId id, string mapId)
+		public static TileResource MakeVector(CanonicalTileId id, string tilesetId)
 		{
-			return new TileResource(string.Format("{0}/{1}.vector.pbf", MapUtils.MapIdToUrl(mapId ?? "mapbox.mapbox-streets-v7"), id));
+			return new TileResource(string.Format("{0}/{1}.vector.pbf", MapUtils.TilesetIdToUrl(tilesetId ?? "mapbox.mapbox-streets-v7"), id));
 		}
 
-		internal static TileResource MakeStyleOptimizedVector(CanonicalTileId id, string mapId, string optimizedStyleId, string modifiedDate)
+		internal static TileResource MakeStyleOptimizedVector(CanonicalTileId id, string tilesetId, string optimizedStyleId, string modifiedDate)
 		{
-			return new TileResource(string.Format("{0}/{1}.vector.pbf?style={2}@{3}", MapUtils.MapIdToUrl(mapId ?? "mapbox.mapbox-streets-v7"), id, optimizedStyleId, modifiedDate));
+			return new TileResource(string.Format("{0}/{1}.vector.pbf?style={2}@{3}", MapUtils.TilesetIdToUrl(tilesetId ?? "mapbox.mapbox-streets-v7"), id, optimizedStyleId, modifiedDate));
 		}
 
 		public string GetUrl()
@@ -58,14 +58,10 @@ namespace Mapbox.Map
 			var uriBuilder = new UriBuilder(_query);
 			if (uriBuilder.Query != null && uriBuilder.Query.Length > 1)
 			{
-				uriBuilder.Query = uriBuilder.Query.Substring(1) + "&" + _eventQuery;
+				uriBuilder.Query = uriBuilder.Query.Substring(1);
 			}
-			else
-			{
-				//uriBuilder.Query = _eventQuery;
-			}
-
-			return uriBuilder.ToString();
+			//return uriBuilder.ToString();
+			return uriBuilder.Uri.ToString();
 		}
 	}
 }

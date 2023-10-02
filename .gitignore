@@ -18,6 +18,7 @@ obj
 
 /Builds/*
 !/Builds/README.md
+/Builds_BurstDebugInformation_DoNotShip/*
 
 # Files to be excluded
 

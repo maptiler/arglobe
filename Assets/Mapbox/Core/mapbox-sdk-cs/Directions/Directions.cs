@@ -13,7 +13,7 @@ namespace Mapbox.Directions
     using Mapbox.Utils.JsonConverters;
 
     /// <summary>
-    ///     Wrapper around the <see href="https://www.mapbox.com/api-documentation/#directions">
+    ///     Wrapper around the <see href="https://www.mapbox.com/api-documentation/navigation/#directions">
     ///     Mapbox Directions API</see>. The Mapbox Directions API will show you how to get where
     ///     you're going.
     /// </summary>
@@ -55,9 +55,15 @@ namespace Mapbox.Directions
 		/// </summary>
 		/// <param name="str">JSON String.</param>
 		/// <returns>A <see cref="DirectionsResponse"/>.</returns>
-		internal DirectionsResponse Deserialize(string str)
+		public DirectionsResponse Deserialize(string str)
 		{
 			return JsonConvert.DeserializeObject<DirectionsResponse>(str, JsonConverters.Converters);
 		}
+
+		public string Serialize(DirectionsResponse response)
+		{
+			return JsonConvert.SerializeObject(response, JsonConverters.Converters);
+		}
+
 	}
 }

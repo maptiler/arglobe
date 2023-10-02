@@ -5,32 +5,35 @@ EditorUserSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 4
   m_ConfigSettings:
+    HideARSubsystemsDeprecatedWarning:
+      value: 0550581500
+      flags: 0
     RecentlyUsedSceneGuid-0:
-      value: 5a075256520d0b0e5b5a0826497709154e4e4b797d7c2060747f4861e1b4303a
-      flags: 0
-    RecentlyUsedSceneGuid-1:
-      value: 0708040407070c0c095d0a7b49725e44454e1d28787e7e65757c4432bbe2313d
-      flags: 0
-    RecentlyUsedSceneGuid-2:
       value: 015301035d015a0c0e5e0f7541270b44404f1d7a2e7f763628791e62b3b4376f
       flags: 0
-    RecentlyUsedSceneGuid-3:
+    RecentlyUsedSceneGuid-1:
       value: 505550520406500d0f5b5e7045250744404e1a732d7923327b794531e4e1616f
       flags: 0
-    RecentlyUsedSceneGuid-4:
+    RecentlyUsedSceneGuid-2:
       value: 51060d540056500c5b59547244260944424e487c2d2a7f67752f4f36e7e4666b
       flags: 0
-    RecentlyUsedSceneGuid-5:
+    RecentlyUsedSceneGuid-3:
       value: 5b57575e5d030d5d5958542049705944444e1a287a2e24602c2d4865b2e66739
       flags: 0
-    RecentlyUsedSceneGuid-6:
+    RecentlyUsedSceneGuid-4:
       value: 5a550c560401585d0e5c5e7249740c4446161c2c7a7d76697a2d4b6ae6b36660
       flags: 0
-    RecentlyUsedSceneGuid-7:
+    RecentlyUsedSceneGuid-5:
       value: 5609515e5d025c0b5f585b75152109444f4e4d7a2d2c2766747c1e67e3e46760
       flags: 0
-    RecentlyUsedSceneGuid-8:
+    RecentlyUsedSceneGuid-6:
       value: 56060c505606590b590f0f2440215d4442151a7c2f7a72667d714931b6b3366f
+      flags: 0
+    RecentlyUsedSceneGuid-7:
+      value: 0055515f00535b580b5b0a2747775d4215151e7d297b7363797f4c62b0e33068
+      flags: 0
+    RecentlyUsedSceneGuid-8:
+      value: 53550653060c58085856097b15260744154f4d7f297b746628794d6bb2b1613a
       flags: 0
     RecentlyUsedSceneGuid-9:
       value: 505256055005515a0e08597a4271594413151a792f7e27327b2b4462e3b7633a
@@ -64,6 +67,9 @@ EditorUserSettings:
       flags: 0
     RecentlyUsedScenePath-9:
       value: 22424703114646680e0b0227036c7e22311b172829650e3f21263136ecf37a2decee22f0
+      flags: 0
+    UnityRemoteDevice:
+      value: 225f4d46245b0d4902070862342649191512
       flags: 0
     vcSharedLogLevel:
       value: 0d5e400f0650

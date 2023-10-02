@@ -6,16 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/Scenes/DefaultScene.unity
-    guid: 96f078b564dd946e893314f09652c4db
-  - enabled: 0
-    path: Assets/Scenes/ARGlobeScene.unity
+    path: Assets/Scenes/ARGlobe-OLD.unity
     guid: cde9ef2cf5fe74b2cbf7e35346112cd0
   - enabled: 1
-    path: Assets/Scenes/ARGlobe-HoloLens.unity
+    path: Assets/Scenes/ARGlobe-CrossPlatform.unity
     guid: 3cbc508acf5822f4ebb3c6ab6b91a77b
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 768d50b4e3b6f9c458d247d0c536fc68,
+      type: 2}
+    UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: e7a168b3ad90a4d1bbe1367d3bdb3d96,
+      type: 2}
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 142e24a8e9b74104ead076ad213866af,
       type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 1e8111bd233df45fcb0788cac4b76376,
       type: 2}

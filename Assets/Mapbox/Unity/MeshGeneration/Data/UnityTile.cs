@@ -1,369 +1,452 @@
-using System.Collections;
-using UnityEngine.Profiling;
+using Mapbox.Unity.Map.Interfaces;
 
 namespace Mapbox.Unity.MeshGeneration.Data
 {
-    using UnityEngine;
-    using Mapbox.Unity.MeshGeneration.Enums;
-    using Mapbox.Unity.Utilities;
-    using Utils;
-    using Mapbox.Map;
-    using System;
-    using Mapbox.Unity.Map;
-    using System.Collections.Generic;
-    using System.IO;
+	using UnityEngine;
+	using Mapbox.Unity.MeshGeneration.Enums;
+	using Mapbox.Unity.Utilities;
+	using Utils;
+	using Mapbox.Map;
+	using System;
+	using Mapbox.Unity.Map;
+	using System.Collections.Generic;
+	using Mapbox.Unity.MeshGeneration.Factories;
 
-    public class UnityTile : MonoBehaviour
-    {
-        [SerializeField] Texture2D _rasterData;
+	public class UnityTile : MonoBehaviour
+	{
+		public TileTerrainType ElevationType;
 
-        float[] _heightData;
+		public string tileSetName;
 
-        float _relativeScale;
+		[SerializeField]
+		private Texture2D _rasterData;
+		public VectorTile VectorData { get; private set; }
+		private Texture2D _heightTexture;
+		public float[] HeightData;
 
-        Texture2D _heightTexture;
+		//private Texture2D _loadingTexture;
+		//keeping track of tile objects to be able to cancel them safely if tile is destroyed before data fetching finishes
+		private List<Tile> _tiles = new List<Tile>();
+		[SerializeField] private float _tileScale;
 
-        List<Tile> _tiles = new List<Tile>();
+		public bool IsRecycled = false;
 
-        MeshRenderer _meshRenderer;
-
-        public MeshRenderer MeshRenderer
-        {
-            get
-            {
-                if (_meshRenderer == null)
-                {
-                    _meshRenderer = GetComponent<MeshRenderer>();
-                }
-                return _meshRenderer;
-            }
-        }
-
-        private MeshFilter _meshFilter;
-
-        public MeshFilter MeshFilter
-        {
-            get
-            {
-                if (_meshFilter == null)
-                {
-                    _meshFilter = GetComponent<MeshFilter>();
-                }
-                return _meshFilter;
-            }
-        }
-
-        private Collider _collider;
-
-        public Collider Collider
-        {
-            get
-            {
-                if (_collider == null)
-                {
-                    _collider = GetComponent<Collider>();
-                }
-                return _collider;
-            }
-        }
-
-        // TODO: should this be a string???
-        string _vectorData;
-
-        public string VectorData
-        {
-            get { return _vectorData; }
-            set
-            {
-                _vectorData = value;
-                OnVectorDataChanged(this);
-            }
-        }
-
-        RectD _rect;
-
-        public RectD Rect
-        {
-            get { return _rect; }
-        }
-
-        UnwrappedTileId _unwrappedTileId;
-
-        public UnwrappedTileId UnwrappedTileId
-        {
-            get { return _unwrappedTileId; }
-        }
-
-        CanonicalTileId _canonicalTileId;
-
-        public CanonicalTileId CanonicalTileId
-        {
-            get { return _canonicalTileId; }
-        }
-
-        public TilePropertyState RasterDataState;
-        public TilePropertyState HeightDataState;
-        public TilePropertyState VectorDataState;
-
-        public event Action<UnityTile> OnHeightDataChanged = delegate { };
-        public event Action<UnityTile> OnRasterDataChanged = delegate { };
-        public event Action<UnityTile> OnVectorDataChanged = delegate { };
-
-        public bool settingRasterData = false;
-
-        internal void Initialize(IMap map, UnwrappedTileId tileId)
-        {
-            _relativeScale = 1 / Mathf.Cos(Mathf.Deg2Rad * (float) map.CenterLatitudeLongitude.x);
-            _rect = Conversions.TileBounds(tileId);
-            _unwrappedTileId = tileId;
-            _canonicalTileId = tileId.Canonical;
-            gameObject.name = _canonicalTileId.ToString();
-            var position = new Vector3((float) (_rect.Center.x - map.CenterMercator.x), 0,
-                (float) (_rect.Center.y - map.CenterMercator.y));
-            transform.localPosition = position;
-            //gameObject.SetActive(true);
-            //Debug.Log("Activating tile: " + _unwrappedTileId.ToString());
-        }
-
-        internal void Recycle()
-        {
-            // TODO: to hide potential visual artifacts, use placeholder mesh / texture?
-
-            gameObject.layer = 4;
-            gameObject.SetActive(false);
-
-            // Reset internal state.
-            RasterDataState = TilePropertyState.None;
-            HeightDataState = TilePropertyState.None;
-            VectorDataState = TilePropertyState.None;
-
-            OnHeightDataChanged = delegate { };
-            OnRasterDataChanged = delegate { };
-            OnVectorDataChanged = delegate { };
-
-            Cancel();
-            _tiles.Clear();
-
-            // HACK: this is for vector layer features and such.
-            // It's slow and wasteful, but a better solution will be difficult.
-            var childCount = transform.childCount;
-            if (childCount > 0)
-            {
-                for (int i = 0; i < childCount; i++)
-                {
-                    Destroy(transform.GetChild(i).gameObject);
-                }
-            }
-        }
-
-        internal void SetHeightData(byte[] data, float heightMultiplier = 1f, bool useRelative = false)
-        {
-            // HACK: compute height values for terrain. We could probably do this without a texture2d.
-            if (_heightTexture == null)
-            {
-                _heightTexture = new Texture2D(0, 0);
-            }
-
-            _heightTexture.LoadImage(data);
-            byte[] rgbData = _heightTexture.GetRawTextureData();
-
-            // Get rid of this temporary texture. We don't need to bloat memory.
-            _heightTexture.LoadImage(null);
-
-            if (_heightData == null)
-            {
-                _heightData = new float[256 * 256];
-            }
-
-            var relativeScale = useRelative ? _relativeScale : 1f;
-            for (int xx = 0; xx < 256; ++xx)
-            {
-                for (int yy = 0; yy < 256; ++yy)
-                {
-                    float r = rgbData[(xx * 256 + yy) * 4 + 1];
-                    float g = rgbData[(xx * 256 + yy) * 4 + 2];
-                    float b = rgbData[(xx * 256 + yy) * 4 + 3];
-                    _heightData[xx * 256 + yy] = relativeScale * heightMultiplier *
-                                                 Conversions.GetAbsoluteHeightFromColor(r, g, b);
-                }
-            }
-
-            HeightDataState = TilePropertyState.Loaded;
-            OnHeightDataChanged(this);
-        }
-
-        public float QueryHeightData(float x, float y)
-        {
-            if (_heightData != null)
-            {
-                var intX = (int) Mathf.Clamp(x * 256, 0, 255);
-                var intY = (int) Mathf.Clamp(y * 256, 0, 255);
-                return _heightData[intY * 256 + intX];
-            }
-
-            return 0;
-        }
-
-        public void StartSetRasterData(byte[] data, bool mipmap, bool compress)
-        {
-			gameObject.SetActive(true);
-            StartCoroutine(SetRasterData(data, mipmap, compress));
-            //SetRasterData(data, mipmap, compress);
-        }
-
-        public void StartSetTexture(Texture2D texture, bool useCompresion) {
-
-            if (settingRasterData == false && RasterDataState != TilePropertyState.Loaded) {
-				gameObject.SetActive(true);
-				gameObject.layer = 11;
-				SetTexture(texture, useCompresion);
-            }
-        }
-
-        private static int _lastFrameUsed;
-        private static GameObject _currentObj;
-
-		public bool ByteArrayToFile(string fileName, byte[] byteArray)
+		#region CachedUnityComponents
+		MeshRenderer _meshRenderer;
+		public MeshRenderer MeshRenderer
 		{
-			try
+			get
 			{
-				using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+				if (_meshRenderer == null)
 				{
-					fs.Write(byteArray, 0, byteArray.Length);
-					return true;
+					_meshRenderer = GetComponent<MeshRenderer>();
+					if (_meshRenderer == null)
+					{
+						_meshRenderer = gameObject.AddComponent<MeshRenderer>();
+					}
+				}
+				return _meshRenderer;
+			}
+		}
+
+		private MeshFilter _meshFilter;
+		public MeshFilter MeshFilter
+		{
+			get
+			{
+				if (_meshFilter == null)
+				{
+					_meshFilter = GetComponent<MeshFilter>();
+					if (_meshFilter == null)
+					{
+						_meshFilter = gameObject.AddComponent<MeshFilter>();
+						_meshFilter.sharedMesh = new Mesh();
+						ElevationType = TileTerrainType.None;
+					}
+				}
+				return _meshFilter;
+			}
+		}
+
+		private Collider _collider;
+		public Collider Collider
+		{
+			get
+			{
+				if (_collider == null)
+				{
+					_collider = gameObject.GetComponent<BoxCollider>();
+					if (_collider == null)
+					{
+						_collider = gameObject.AddComponent<BoxCollider>();
+					}
+				}
+				return _collider;
+			}
+		}
+		#endregion
+
+		[ContextMenu("Recalculate Collider Bounds")]
+		public void RecalculateColliderBounds()
+		{
+			_collider.bounds.Encapsulate(_meshRenderer.bounds.center);
+			//_collider.bounds.center = _meshRenderer.bounds.center;
+		}
+
+		[ContextMenu("Reset Collider")]
+		public void ResetCollider()
+        {
+			StartCoroutine(ResetColliderSequence());
+        }
+
+		private System.Collections.IEnumerator ResetColliderSequence()
+        {
+			//Destroy(Collider);
+			yield return null;
+			_ = Collider;
+        }
+
+		#region Tile Positon/Scale Properties
+		public RectD Rect { get; private set; }
+		public int InitialZoom { get; private set; }
+		public int CurrentZoom { get; private set; }
+
+		public float TileScale
+		{
+			get { return _tileScale; }
+			private set { _tileScale = value; }
+		}
+
+		public UnwrappedTileId UnwrappedTileId { get; private set; }
+		public CanonicalTileId CanonicalTileId { get; private set; }
+
+		private float _relativeScale;
+		#endregion
+
+		[SerializeField]
+		private TilePropertyState _rasterDataState;
+		public TilePropertyState RasterDataState
+		{
+			get
+			{
+				return _rasterDataState;
+			}
+			internal set
+			{
+				if (_rasterDataState != value)
+				{
+					_rasterDataState = value;
+					OnRasterDataChanged(this);
 				}
 			}
-			catch (Exception ex)
+		}
+		[SerializeField]
+		private TilePropertyState _heightDataState;
+		public TilePropertyState HeightDataState
+		{
+			get
 			{
-				Console.WriteLine("Exception caught in process: {0}", ex);
-				return false;
+				return _heightDataState;
+			}
+			internal set
+			{
+				if (_heightDataState != value)
+				{
+					_heightDataState = value;
+					OnHeightDataChanged(this);
+				}
+			}
+		}
+		[SerializeField]
+		private TilePropertyState _vectorDataState;
+		public TilePropertyState VectorDataState
+		{
+			get
+			{
+				return _vectorDataState;
+			}
+			internal set
+			{
+				if (_vectorDataState != value)
+				{
+					_vectorDataState = value;
+					OnVectorDataChanged(this);
+				}
+			}
+		}
+		private TilePropertyState _tileState = TilePropertyState.None;
+		public TilePropertyState TileState
+		{
+			get
+			{
+				return _tileState;
+			}
+			set
+			{
+				if (_tileState != value)
+				{
+					_tileState = value;
+				}
 			}
 		}
 
-        //public void SetRasterData(byte[] data, bool useMipMap, bool useCompression)
-        public IEnumerator SetRasterData(byte[] data, bool useMipMap, bool useCompression)
-        {
-            //ByteArrayToFile(_canonicalTileId.Z.ToString() + _canonicalTileId.X.ToString() + _canonicalTileId.Y.ToString(), data);
+		public event Action<UnityTile> OnHeightDataChanged = delegate { };
+		public event Action<UnityTile> OnRasterDataChanged = delegate { };
+		public event Action<UnityTile> OnVectorDataChanged = delegate { };
 
-            while (true)
-            {
-                _currentObj = gameObject;
+		private bool _isInitialized = false;
+		private AbstractMap _map;
 
-                if (_currentObj == gameObject && _lastFrameUsed != Time.renderedFrameCount)
-                {
-                    break;
-                }
-                yield return null;
-            }
-
-            settingRasterData = true;
-
-            _lastFrameUsed = Time.renderedFrameCount;
-
-            if (_rasterData == null)
-            {
-                _rasterData = new Texture2D(0, 0, TextureFormat.RGB565, false);
-                _rasterData.wrapMode = TextureWrapMode.Clamp;
-            }
-
-            //MeshRenderer.material.mainTexture = _rasterData;
-
-			MeshRenderer.material.mainTexture = _rasterData;
-
-            _rasterData.LoadImage(data, false);
-            gameObject.layer = 11;
-
-            //Debug.Log("Did set raster data");
-            ////Profiler.BeginSample("Load Tex");
-
-			////Profiler.EndSample();
-
-            //if (useCompression)
-            //{
-            //    _rasterData.Compress(false);
-            //}
-
-            //MeshRenderer.material.SetColor("_Diffusecolor", Color.white);
-
-			RasterDataState = TilePropertyState.Loaded;
-			OnRasterDataChanged(this);
-            _currentObj = null;
-            settingRasterData = false;
-        }
-
-        public void SetTexture(Texture2D texture, bool useCompression)
+		internal void Initialize(IMapReadable map, UnwrappedTileId tileId, float scale, int zoom, Texture2D loadingTexture = null)
 		{
-            _rasterData = texture;
+			_map = (AbstractMap)map;
+			gameObject.hideFlags = HideFlags.DontSave;
 
-			MeshRenderer.material.mainTexture = _rasterData;
+			ElevationType = TileTerrainType.None;
+			TileScale = scale;
+			_relativeScale = 1 / Mathf.Cos(Mathf.Deg2Rad * (float)map.CenterLatitudeLongitude.x);
+			tileSetName = ((ImageryLayer)_map.ImageLayer).LayerProperty.sourceOptions.layerSource.Name;
+			Rect = Conversions.TileBounds(tileId);
+			UnwrappedTileId = tileId;
+			CanonicalTileId = tileId.Canonical;
+			//_loadingTexture = loadingTexture;
 
-			//if (useCompression)
-			//{
-			//	_rasterData.Compress(false);
-			//}
+			//float scaleFactor = 1.0f;
+			if (_isInitialized == false)
+			{
+				_isInitialized = true;
+				InitialZoom = zoom;
+			}
+			CurrentZoom = zoom;
+			float scaleFactor = Mathf.Pow(2, (map.InitialZoom - zoom));
+			gameObject.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+			//gameObject.SetActive(true);
 
-            //MeshRenderer.material.SetColor("_Diffusecolor", Color.white);
+			IsRecycled = false;
+			string path = $"GlobeImages/{((ImageryLayer)_map.ImageLayer).LayerProperty.sourceOptions.layerSource.Name}/{_map.InitialZoom}{tileId.X}{tileId.Y}";
+			//Debug.LogError(path);
+			if (tileId.Z == _map.InitialZoom)
+				_meshRenderer.material.mainTexture = Resources.Load<Texture>(path);// string.Format("{0}/{1}", MapUtils.NormalizeStaticStyleURL(styleUrl ?? "mapbox://styles/mapbox/satellite-v9"), id));
 
-			RasterDataState = TilePropertyState.Loaded;
-			OnRasterDataChanged(this);
-
-			//_currentObj = null;
+			// Setup Loading as initial state - Unregistered
+			// When tile registers with factories, it will set the appropriate state.
+			// None, if Factory source is None, Loading otherwise.
 		}
 
-        protected virtual void OnDestroy()
-        {
-            if (_rasterData != null)
-            {
-                Destroy(_rasterData);
-                _rasterData = null;
-                Destroy(MeshRenderer.material.mainTexture);
-                MeshRenderer.material.mainTexture = null;
-            }
-            if (MeshFilter != null)
-            {
-                if (MeshFilter.mesh != null)
-                {
-                    Destroy(MeshFilter.mesh);
-                    MeshFilter.mesh = null;
-                }
-                Destroy(MeshFilter);
-            }
-            if (MeshRenderer != null)
-            {
-                Destroy(MeshRenderer);
-            }
-        }
+		internal void Recycle()
+		{
+			/*if (_loadingTexture && MeshRenderer != null && MeshRenderer.sharedMaterial != null)
+			{
+				MeshRenderer.sharedMaterial.mainTexture = _loadingTexture;
+			}*/
 
-        public void ClearTexture()
-        {
+			gameObject.SetActive(false);
+			IsRecycled = true;
+			//Destroy(Collider);
+
+			// Reset internal state.
+			RasterDataState = TilePropertyState.Unregistered;
+			HeightDataState = TilePropertyState.Unregistered;
+			VectorDataState = TilePropertyState.Unregistered;
+			TileState = TilePropertyState.Unregistered;
+
+			OnHeightDataChanged = delegate { };
+			OnRasterDataChanged = delegate { };
+			OnVectorDataChanged = delegate { };
+
+			Cancel();
+			_tiles.Clear();
+		}
+
+		public void SetHeightData(byte[] data, float heightMultiplier = 1f, bool useRelative = false, bool addCollider = false)
+		{
+			if (HeightDataState != TilePropertyState.Unregistered)
+			{
+				//reset height data
+				if(data == null)
+				{
+					HeightData = new float[256 * 256];
+					HeightDataState = TilePropertyState.None;
+					return;
+				}
+
+				// HACK: compute height values for terrain. We could probably do this without a texture2d.
+				if (_heightTexture == null)
+				{
+					_heightTexture = new Texture2D(0, 0);
+				}
+
+				_heightTexture.LoadImage(data);
+				byte[] rgbData = _heightTexture.GetRawTextureData();
+
+				// Get rid of this temporary texture. We don't need to bloat memory.
+				_heightTexture.LoadImage(null);
+
+				if (HeightData == null)
+				{
+					HeightData = new float[256 * 256];
+				}
+
+				var relativeScale = useRelative ? _relativeScale : 1f;
+				for (int xx = 0; xx < 256; ++xx)
+				{
+					for (int yy = 0; yy < 256; ++yy)
+					{
+						float r = rgbData[(xx * 256 + yy) * 4 + 1];
+						float g = rgbData[(xx * 256 + yy) * 4 + 2];
+						float b = rgbData[(xx * 256 + yy) * 4 + 3];
+						//the formula below is the same as Conversions.GetAbsoluteHeightFromColor but it's inlined for performance
+						HeightData[xx * 256 + yy] = relativeScale * heightMultiplier * (-10000f + ((r * 65536f + g * 256f + b) * 0.1f));
+					}
+				}
+
+				HeightDataState = TilePropertyState.Loaded;
+			}
+		}
+
+		public void SetRasterData(byte[] data, bool useMipMap = true, bool useCompression = false)
+		{
+			// Don't leak the texture, just reuse it.
+			if (RasterDataState != TilePropertyState.Unregistered)
+			{
+				if (CanonicalTileId.Z == 3)
+				{
+					if (_rasterData == null)
+					{
+						_rasterData = new Texture2D(0, 0, TextureFormat.RGB24, useMipMap);
+						_rasterData.wrapMode = TextureWrapMode.Clamp;
+					}
+
+					//Debug.Log("Loading tile texture from resources!");
+					string path = "GlobeImages/" + tileSetName + "/" + CanonicalTileId.Z + CanonicalTileId.X + CanonicalTileId.Y;
+					Texture2D newTex = ((Texture2D)Resources.Load(path));
+					MeshRenderer.sharedMaterial.mainTexture = newTex;// _rasterData;
+					RasterDataState = TilePropertyState.Loaded;
+
+					_rasterData.LoadImage(newTex.GetRawTextureData());
+					if (useCompression)
+					{
+						// High quality = true seems to decrease image quality?
+						_rasterData.Compress(false);
+					}
+				}
+				else
+				{
+					//reset image on null data
+					if (data == null)
+					{
+						MeshRenderer.material.mainTexture = null;
+						return;
+					}
+
+					if (_rasterData == null)
+					{
+						_rasterData = new Texture2D(0, 0, TextureFormat.RGB24, useMipMap);
+						_rasterData.wrapMode = TextureWrapMode.Clamp;
+					}
+
+					_rasterData.LoadImage(data);
+					if (useCompression)
+					{
+						// High quality = true seems to decrease image quality?
+						_rasterData.Compress(false);
+					}
+
+					MeshRenderer.sharedMaterial.mainTexture = _rasterData;
+					RasterDataState = TilePropertyState.Loaded;
+				}
+			}
+		}
+
+		public void SetVectorData(VectorTile vectorTile)
+		{
+			if (VectorDataState != TilePropertyState.Unregistered)
+			{
+				VectorData = vectorTile;
+			}
+		}
+
+		/// <summary>
+		/// Method to query elevation data in any point in the tile using [0-1] range inputs.
+		/// Input values are clamped for safety and QueryHeightDataNonclamped method should be used for
+		/// higher performance usage.
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <returns></returns>
+		public float QueryHeightData(float x, float y)
+		{
+			if (HeightData != null)
+			{
+				return HeightData[(int)(Mathf.Clamp01(y) * 255) * 256 + (int)(Mathf.Clamp01(x) * 255)] * _tileScale;
+			}
+
+			return 0;
+		}
+
+		/// <summary>
+		///  Method to query elevation data in any point in the tile using [0-1] range inputs.
+		/// Input values aren't clamped for improved performance and assuring they are in [0-1] range
+		/// is left to caller.
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <returns></returns>
+		public float QueryHeightDataNonclamped(float x, float y)
+		{
+			if (HeightData != null)
+			{
+				return HeightData[(int)(y * 255) * 256 + (int)(x * 255)] * _tileScale;
+			}
+
+			return 0;
+		}
+
+		public void SetLoadingTexture(Texture2D texture)
+		{
+			MeshRenderer.material.mainTexture = texture;
+		}
+
+		public Texture2D GetRasterData()
+		{
+			return _rasterData;
+		}
+
+		internal void AddTile(Tile tile)
+		{
+			_tiles.Add(tile);
+		}
+
+		public void ClearAssets()
+		{
+			if (Application.isEditor && !Application.isPlaying)
+			{
+				DestroyImmediate(_heightTexture, true);
+				DestroyImmediate(_rasterData, true);
+				DestroyImmediate(_meshFilter.sharedMesh);
+				DestroyImmediate(_meshRenderer.sharedMaterial);
+			}
+		}
+
+		public void Cancel()
+		{
+			for (int i = 0, _tilesCount = _tiles.Count; i < _tilesCount; i++)
+			{
+				_tiles[i].Cancel();
+			}
+		}
+
+		protected virtual void OnDestroy()
+		{
+			Cancel();
+			if (_heightTexture != null)
+			{
+				_heightTexture.Destroy();
+			}
 			if (_rasterData != null)
 			{
-				Destroy(_rasterData);
-				_rasterData = null;
-                Destroy(MeshRenderer.material.GetTexture("_MainTex"));
-				MeshRenderer.material.mainTexture = null;
+				_rasterData.Destroy();
 			}
-
-            //MeshRenderer.material.SetColor("_Diffusecolor", new Color(1f, 1f, 1f, 0f));
-        }
-
-        public Texture2D GetRasterData()
-        {
-            return _rasterData;
-        }
-
-        internal void AddTile(Tile tile)
-        {
-            _tiles.Add(tile);
-        }
-
-        public void Cancel()
-        {
-            for (int i = 0, _tilesCount = _tiles.Count; i < _tilesCount; i++)
-            {
-                _tiles[i].Cancel();
-            }
-            StopAllCoroutines();
-        }
-    }
+		}
+	}
 }

@@ -17,27 +17,23 @@ public class ScanningControl : MonoBehaviour {
 	public LayerMask mask;
 
 	[HideInInspector] public GameObject currentIndicator;
-	[HideInInspector] public GameObject mapParent;
+	//[HideInInspector] public GameObject mapParent;
 
 	private GameObject stretchedPlane;
 	private bool stageTwo = false;
 	private GameObject currentPlane;
 
-	private GameObject chatBubble;
 	private List<GameObject> chatBubbles = new List<GameObject>();
 
 	public delegate void ScanFinalStep(Vector3 position);
 	public static event ScanFinalStep finalStep;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
+
 
 	// Update is called once per frame
 	void Update () {
 
-		Ray ray = Camera.main.ViewportPointToRay (new Vector3(0.5f,0.5f,0f));
+		Ray ray = LevelManagerGlobe.Instance.cameraRef.ViewportPointToRay (new Vector3(0.5f,0.5f,0f));
 
 		RaycastHit hit;
 
@@ -48,7 +44,8 @@ public class ScanningControl : MonoBehaviour {
 				currentPlane = hit.collider.gameObject;
 
 				if (stretchedPlane == null) {
-					next ();
+					//next ();
+					Debug.LogWarning("TODO: NEXT?");
 				}
 
 				currentIndicator = Instantiate (indicatorPrefab);
@@ -72,30 +69,16 @@ public class ScanningControl : MonoBehaviour {
 		}
 	}
 
-	public void next() {
-
-		Handheld.Vibrate ();
-		stageTwo = true;
-
+	public void next()
+	{
 		Vector3 position = currentPlane.transform.position;
 
-		stretchedPlane = Instantiate (planePrefab);
+		stretchedPlane = Instantiate(planePrefab);
 
 		stretchedPlane.transform.position = position;
-		stretchedPlane.transform.localScale = new Vector3 (50f, 1f, 50f);
-		nextButtonObject.SetActive (false);
-		confirmButton.SetActive (true);
-
-		Destroy(chatBubbles.Last ());
-		chatBubbles.Clear ();
-
-		GameObject bubble = ChatBubble.createChatBubble (canvas, "Good job. You can now place the globe\nby pressing the confirm button. Globe will be\nplaced at the center of the circle indicator.");
-
-		StartCoroutine(ChatBubble.moveBuble (bubble, chatBubbles, () => {
-			
-		}));
-
-		chatBubbles.Add (bubble);
+		stretchedPlane.transform.localScale = new Vector3(50f, 1f, 50f);
+		nextButtonObject.SetActive(false);
+		confirmButton.SetActive(true);
 	}
 
 	public void confirm() {
@@ -103,22 +86,6 @@ public class ScanningControl : MonoBehaviour {
 		if (finalStep != null) {
 			finalStep (currentIndicator.transform.position);
 		}
-	}
-
-	public void enable() {
-
-		GameObject bubble = ChatBubble.createChatBubble (canvas, "First we need to scan your room. Aim your camera at the floor.\n You should see yellow dots floating around.");
-
-		StartCoroutine(ChatBubble.moveBuble (bubble, chatBubbles, () => {
-			
-		}));
-
-		chatBubbles.Add (bubble);
-
-		//targetImage.SetActive (true);
-		//screenTextPanel.SetActive (true);
-
-		enabled = true;
 	}
 
 	IEnumerator newBubble() {

@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4486833815143850490
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -9169495455421065941, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: globeData
+      value: 
+      objectReference: {fileID: 11400000, guid: ef50d7ec8e67e3c41b528a802874abf5,
+        type: 2}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463031, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463032, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: _imagery._layerProperty.sourceOptions.layerSource.Id
+      value: http://rumseyarglobe.s3-website-us-west-1.amazonaws.com/WorldGlobe1688
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463032, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: _imagery._layerProperty.sourceOptions.layerSource.Name
+      value: WorldGlobe1688
+      objectReference: {fileID: 0}
+    - target: {fileID: 5760195451989463033, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: m_Name
+      value: WorldGlobe1688
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400408291888962285, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: topCapColor.b
+      value: 0.8980392
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400408291888962285, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: topCapColor.g
+      value: 0.91764706
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400408291888962285, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: topCapColor.r
+      value: 0.9254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400408291888962285, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: bottomCapColor.b
+      value: 0.8980392
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400408291888962285, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: bottomCapColor.g
+      value: 0.91764706
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400408291888962285, guid: 1e8c816a5417f0e4986a18fe181f9994,
+        type: 3}
+      propertyPath: bottomCapColor.r
+      value: 0.9254902
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1e8c816a5417f0e4986a18fe181f9994, type: 3}

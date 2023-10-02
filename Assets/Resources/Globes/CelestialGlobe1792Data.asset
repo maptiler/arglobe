@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db0f40c1291d9fd478da8ca1f1c3f794, type: 3}
+  m_Name: CelestialGlobe1792Data
+  m_EditorClassIdentifier: 
+  globeSprite: {fileID: 21300000, guid: 896c7dc05177c4a29bbdccd28b035938, type: 3}
+  globeName: CelestialGlobe1792
+  authorText: Cassini, Giovanni Maria
+  dateText: 1792
+  titleText: Globo Terrestre
+  url: https://www.davidrumsey.com/luna/servlet/s/8x8xfd
+  topCapColor: {r: 0.9647059, g: 0.9254902, b: 0.85882354, a: 1}
+  bottomCapColor: {r: 0.9647059, g: 0.9254902, b: 0.85882354, a: 1}

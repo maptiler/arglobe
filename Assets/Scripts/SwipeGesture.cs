@@ -7,24 +7,21 @@ using System.Collections.Generic;
 
 public class SwipeGesture : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject mapParent;
-
-    private Camera cameraRef;
+    //private Camera cameraRef;
 
     public float keepSpinning;
     //private float lastGestureTimestamp = 0;
 
-    private bool allowLeft = true;
+    /*private bool allowLeft = true;
     private bool allowRight = true;
     private Vector3 leftStartPoint;
-    private Vector3 rightStartPoint;
+    private Vector3 rightStartPoint;*/
 
 
-    private void Start()
+    /*private void Start()
     {
         cameraRef = Camera.main;
-    }
+    }*/
 
     void Update()
     {
@@ -107,7 +104,7 @@ public class SwipeGesture : MonoBehaviour
 
         if (Mathf.Abs(keepSpinning) > 0.01f)
         {
-            mapParent.transform.Rotate(new Vector3(0f, keepSpinning * 3f, 0f) * Time.deltaTime);
+            LevelManagerGlobe.Instance.MapParent.transform.Rotate(new Vector3(0f, keepSpinning * 3f, 0f) * Time.deltaTime);
             keepSpinning = keepSpinning > 0 ? keepSpinning - 50 * Time.deltaTime : keepSpinning + 50 * Time.deltaTime;
 
             if (keepSpinning < 0.1 && keepSpinning > -0.1)
@@ -115,9 +112,6 @@ public class SwipeGesture : MonoBehaviour
                 keepSpinning = 0.0f;
             }
         }
-
-
-
 
         return;
 

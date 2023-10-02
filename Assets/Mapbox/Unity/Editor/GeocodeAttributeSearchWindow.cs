@@ -1,14 +1,21 @@
 ﻿namespace Mapbox.Editor
 {
-    using UnityEngine;
-    using UnityEditor;
-    using System.Collections.Generic;
-    using Mapbox.Geocoding;
-    using Mapbox.Unity;
+	using UnityEngine;
+	using UnityEditor;
+	using System;
+	using System.Collections.Generic;
+	using Mapbox.Geocoding;
+	using Mapbox.Unity;
+	using System.Globalization;
+	using Mapbox.Unity.Map;
+	using Mapbox.Editor;
 
 	public class GeocodeAttributeSearchWindow : EditorWindow
 	{
-		SerializedProperty _property;
+		SerializedProperty _coordinateProperty;
+		object _objectToUpdate;
+
+		private bool _updateAbstractMap;
 
 		string _searchInput = "";
 
@@ -27,21 +34,25 @@
 		void OnEnable()
 		{
 			_resource = new ForwardGeocodeResource("");
-			EditorApplication.playmodeStateChanged += OnModeChanged;
+			EditorApplication.playModeStateChanged += OnModeChanged;
 		}
 
 		void OnDisable()
 		{
-			EditorApplication.playmodeStateChanged -= OnModeChanged;
+			EditorApplication.playModeStateChanged -= OnModeChanged;
 		}
 
 		bool hasSetFocus = false;
 
-		public static void Open(SerializedProperty property)
+		public static void Open(SerializedProperty property, object objectToUpdate = null)
 		{
 			GeocodeAttributeSearchWindow window = EditorWindow.GetWindow<GeocodeAttributeSearchWindow>(true, "Search for location");
 
-			window._property = property;
+			window._coordinateProperty = property;
+			if (objectToUpdate != null)
+			{
+				window._objectToUpdate = objectToUpdate;
+			}
 
 			Event e = Event.current;
 			Vector2 mousePos = GUIUtility.GUIToScreenPoint(e.mousePosition);
@@ -49,7 +60,7 @@
 			window.position = new Rect(mousePos.x - width, mousePos.y, width, height);
 		}
 
-		void OnModeChanged()
+		void OnModeChanged(PlayModeStateChange state)
 		{
 			Close();
 		}
@@ -59,10 +70,10 @@
 			GUILayout.Label("Search for a location");
 
 			string oldSearchInput = _searchInput;
-			
+
 			GUI.SetNextControlName(searchFieldName);
 			_searchInput = GUILayout.TextField(_searchInput);
-			
+
 			if (_searchInput.Length == 0)
 			{
 				GUILayout.Label("Type in a location to find it's latitude and longtitude");
@@ -70,8 +81,8 @@
 			else
 			{
 				bool changed = oldSearchInput != _searchInput;
-				if(changed)
-				{ 
+				if (changed)
+				{
 					HandleUserInput(_searchInput);
 				}
 
@@ -81,16 +92,48 @@
 					for (int i = 0; i < _features.Count; i++)
 					{
 						Feature feature = _features[i];
-						string coordinates = feature.Center.x + ", " + feature.Center.y;
-						string buttonContent = feature.Address + " (" + coordinates + ")";
+						string coordinates = feature.Center.x.ToString(CultureInfo.InvariantCulture) + ", " +
+						                            feature.Center.y.ToString(CultureInfo.InvariantCulture);
+
+						//abreviated coords for display in the UI
+						string truncatedCoordinates = feature.Center.x.ToString("F2", CultureInfo.InvariantCulture) + ", " +
+							feature.Center.y.ToString("F2", CultureInfo.InvariantCulture);
+
+						//split feature name and add elements until the maxButtonContentLenght is exceeded
+						string[] featureNameSplit = feature.PlaceName.Split(',');
+						string buttonContent = "";
+						int maxButtonContentLength = 30;
+						for (int j = 0; j < featureNameSplit.Length; j++)
+						{
+							if(buttonContent.Length + featureNameSplit[j].Length < maxButtonContentLength)
+							{
+								if(String.IsNullOrEmpty(buttonContent))
+								{
+									buttonContent = featureNameSplit[j];
+								}
+								else
+								{
+									buttonContent = buttonContent + "," + featureNameSplit[j];
+								}
+							}
+						}
+
+						if (buttonContent.Length < maxButtonContentLength + 15)
+						{
+							buttonContent = buttonContent + "," + " (" + truncatedCoordinates + ")";
+						}
+
 
 						if (GUILayout.Button(buttonContent))
 						{
-							_property.stringValue = coordinates;
+							_coordinateProperty.stringValue = coordinates;
+							_coordinateProperty.serializedObject.ApplyModifiedProperties();
+							EditorUtility.SetDirty(_coordinateProperty.serializedObject.targetObject);
 
-							_property.serializedObject.ApplyModifiedProperties();
-							EditorUtility.SetDirty(_property.serializedObject.targetObject);
-
+							if(_objectToUpdate != null)
+							{
+								EditorHelper.CheckForModifiedProperty(_coordinateProperty, _objectToUpdate, true);
+							}
 							Close();
 						}
 					}
@@ -103,7 +146,7 @@
 						GUILayout.Label("No search results");
 				}
 			}
-			
+
 			if (!hasSetFocus)
 			{
 				GUI.FocusControl(searchFieldName);
@@ -119,23 +162,23 @@
 			if (!string.IsNullOrEmpty(searchString))
 			{
 				_resource.Query = searchString;
-                MapboxAccess.Instance.Geocoder.Geocode(_resource, HandleGeocoderResponse);
+				MapboxAccess.Instance.Geocoder.Geocode(_resource, HandleGeocoderResponse);
 			}
 		}
 
 		void HandleGeocoderResponse(ForwardGeocodeResponse res)
 		{
-			_features = res.Features;
+			//null if no internet connection
+			if (res != null)
+			{
+				//null if invalid token
+				if (res.Features != null)
+				{
+					_features = res.Features;
+				}
+			}
 			_isSearching = false;
 			this.Repaint();
-
-			//_hasResponse = true;
-			//_coordinate = res.Features[0].Center;
-			//Response = res;
-			//if (OnGeocoderResponse != null)
-			//{
-			//	OnGeocoderResponse(this, EventArgs.Empty);
-			//}
 		}
 	}
 }

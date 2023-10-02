@@ -50,6 +50,12 @@ namespace Mapbox.Unity.Utilities
 		{
 			return new Vector2d(v.x, v.z);
 		}
+		
+		
+		public static Vector3 Perpendicular(this Vector3 v)
+		{
+			return new Vector3(-v.z, v.y, v.x);
+		}
 
 		/// <summary>
 		/// Transform extension method to move a Unity transform to a specific latitude/longitude.
@@ -129,6 +135,11 @@ namespace Mapbox.Unity.Utilities
 		{
 			var pos = refPoint + (position / scale).ToVector2d();
 			return Conversions.MetersToLatLon(pos);
+		}
+
+		public static Vector2d GetGeoPosition(this Vector2 position, Vector2d refPoint, float scale = 1)
+		{
+			return position.ToVector3xz().GetGeoPosition(refPoint, scale);
 		}
 	}
 }

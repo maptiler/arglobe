@@ -11,7 +11,7 @@ namespace Mapbox.Map
 	using System.Linq;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
-	using UnityEngine;
+	using Mapbox.Unity.Utilities;
 
 
 	/// <summary>
@@ -29,9 +29,6 @@ namespace Mapbox.Map
 		private IAsyncRequest _request;
 		private Action _callback;
 
-		public bool repeatCall = false;
-
-
 		/// <summary> Tile state. </summary>
 		public enum State
 		{
@@ -42,7 +39,9 @@ namespace Mapbox.Map
 			/// <summary> Data loaded and parsed. </summary>
 			Loaded,
 			/// <summary> Data loading cancelled. </summary>
-			Canceled
+			Canceled,
+			/// <summary> Data has been loaded before and got updated. </summary>
+			Updated
 		}
 
 		/// <summary> Gets the <see cref="T:Mapbox.Map.CanonicalTileId"/> identifier. </summary>
@@ -62,8 +61,6 @@ namespace Mapbox.Map
 				return _exceptions == null ? false : _exceptions.Count > 0;
 			}
 		}
-
-        public bool wasCancelled = false;
 
 
 		/// <summary> Exceptions that might have occured during creation of the tile. </summary>
@@ -109,6 +106,10 @@ namespace Mapbox.Map
 			}
 		}
 
+
+		public HttpRequestType RequestType { get { return _request.RequestType; } }
+
+
 		public bool IsCompleted
 		{
 			get
@@ -116,7 +117,6 @@ namespace Mapbox.Map
 				return _state == State.Loaded;
 			}
 		}
-
 
 		/// <summary>
 		///     Initializes the <see cref="T:Mapbox.Map.Tile"/> object. It will
@@ -131,27 +131,18 @@ namespace Mapbox.Map
 			_state = State.Loading;
 			_id = param.Id;
 			_callback = callback;
-			_request = param.Fs.Request(MakeTileResource(param.MapId).GetUrl(), HandleTileResponse, tileId: _id, mapId: param.MapId);
+			_request = param.Fs.Request(MakeTileResource(param.TilesetId).GetUrl(), HandleTileResponse, tileId: _id, tilesetId: param.TilesetId);
 		}
 
-		internal void Initialize(IFileSource fileSource, CanonicalTileId canonicalTileId, string mapId, Action p)
+		internal void Initialize(IFileSource fileSource, CanonicalTileId canonicalTileId, string tilesetId, Action p)
 		{
 			Cancel();
 
 			_state = State.Loading;
 			_id = canonicalTileId;
 			_callback = p;
-
-			String newUrl = MakeTileResource (mapId).GetUrl();
-			//Debug.Log ("Downloading from URL: "+newUrl);
-			_request = fileSource.Request(MakeTileResource(mapId).GetUrl(), HandleTileResponse, tileId: _id, mapId: mapId);
+			_request = fileSource.Request(MakeTileResource(tilesetId).GetUrl(), HandleTileResponse, tileId: _id, tilesetId: tilesetId);
 		}
-
-        internal void InitializeCustom(CanonicalTileId canonicalTileId) {
-
-            _state = State.Loading;
-            _id = canonicalTileId;
-        }
 
 		/// <summary>
 		///     Returns a <see cref="T:System.String"/> that represents the current
@@ -186,7 +177,7 @@ namespace Mapbox.Map
 		///		{
 		///			tile.Cancel();
 		///			NotifyNext(tile);
-		///			return true;			
+		///			return true;
 		/// 	}
 		///	});
 		/// </code>
@@ -204,7 +195,7 @@ namespace Mapbox.Map
 
 
 		// Get the tile resource (raster/vector/etc).
-		internal abstract TileResource MakeTileResource(string mapid);
+		internal abstract TileResource MakeTileResource(string tilesetId);
 
 
 		// Decode the tile.
@@ -215,14 +206,17 @@ namespace Mapbox.Map
 		// a Worker class to abstract this, so on platforms that support threads (like Unity
 		// on the desktop, Android, etc) we can use worker threads and when building for
 		// the browser, we keep it single-threaded.
+		List<string> ids = new List<string>();
 		private void HandleTileResponse(Response response)
 		{
-			repeatCall = false;
+
 			if (response.HasError)
 			{
-                if (response.StatusCode != 404 && response.StatusCode != 999) {
-					repeatCall = true;
-				}
+				if (!ids.Contains(_id.ToString()))
+					ids.Add(_id.ToString());
+				else
+					return;
+
 				response.Exceptions.ToList().ForEach(e => AddException(e));
 			}
 			else
@@ -238,13 +232,15 @@ namespace Mapbox.Map
 			// Cancelled is not the same as loaded!
 			if (_state != State.Canceled)
 			{
-                wasCancelled = false;
-				_state = State.Loaded;
+				if (response.IsUpdate)
+				{
+					_state = State.Updated;
+				}
+				else
+				{
+					_state = State.Loaded;
+				}
 			}
-            else {
-                wasCancelled = true;
-            }
-
 			_callback();
 		}
 
@@ -257,7 +253,7 @@ namespace Mapbox.Map
 		/// var parameters = new Tile.Parameters();
 		/// parameters.Fs = MapboxAccess.Instance;
 		/// parameters.Id = new CanonicalTileId(_zoom, _tileCoorindateX, _tileCoordinateY);
-		/// parameters.MapId = "mapbox.mapbox-streets-v7";
+		/// parameters.TilesetId = "mapbox.mapbox-streets-v7";
 		/// </code>
 		/// </example>
 		public struct Parameters
@@ -266,11 +262,11 @@ namespace Mapbox.Map
 			public CanonicalTileId Id;
 
 			/// <summary>
-			///     The tileset map ID, usually in the format "user.mapid". Exceptionally,
+			///     The tileset ID, usually in the format "user.mapid". Exceptionally,
 			///     <see cref="T:Mapbox.Map.RasterTile"/> will take the full style URL
 			///     from where the tile is composited from, like mapbox://styles/mapbox/streets-v9.
 			/// </summary>
-			public string MapId;
+			public string TilesetId;
 
 			/// <summary> The data source abstraction. </summary>
 			public IFileSource Fs;

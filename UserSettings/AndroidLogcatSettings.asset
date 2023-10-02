@@ -1,0 +1,89 @@
+{
+    "m_SelectedDeviceId": "RF8M82043FB",
+    "m_SelectedPackage": {
+        "deviceId": "RF8M82043FB",
+        "name": "com.ThreeDragons.ARGlobe",
+        "processId": 20911,
+        "exited": false
+    },
+    "m_SelectedPriority": 1,
+    "m_KnownPackagesForSerialization": [
+        {
+            "deviceId": "RF8M82043FB",
+            "name": "com.ThreeDragons.ARGlobe",
+            "processId": 10246,
+            "exited": false
+        },
+        {
+            "deviceId": "RF8M82043FB",
+            "name": "com.ThreeDragons.ARGlobe",
+            "processId": 11625,
+            "exited": false
+        },
+        {
+            "deviceId": "RF8M82043FB",
+            "name": "com.ThreeDragons.ARGlobe",
+            "processId": 11379,
+            "exited": false
+        },
+        {
+            "deviceId": "RF8M82043FB",
+            "name": "com.ThreeDragons.ARGlobe",
+            "processId": 20911,
+            "exited": false
+        }
+    ],
+    "m_Tags": {
+        "m_Entries": [
+            {
+                "m_Name": "Filter by all listed tags",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "No Filter",
+                "m_Selected": true
+            },
+            {
+                "m_Name": "",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "Tag Control...",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "Unity",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "CRASH",
+                "m_Selected": false
+            }
+        ]
+    },
+    "m_MemoryViewerState": {
+        "MemoryWindowHeight": 300.0,
+        "MemoryWindowWidth": 170.0,
+        "MemoryTypeEnabled": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        ],
+        "MemoryGroup": 2,
+        "Behavior": 0
+    },
+    "m_Filter": "",
+    "m_FilterIsRegularExpression": false,
+    "m_SymbolPaths": []
+}

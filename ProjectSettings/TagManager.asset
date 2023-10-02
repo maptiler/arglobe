@@ -24,8 +24,7 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - Ground
   - 
   - 
   - 
@@ -38,6 +37,7 @@ TagManager:
   - 
   - 
   - Spatial Awareness
+  - Teleport
   m_SortingLayers:
   - name: Default
     uniqueID: 0
