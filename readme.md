@@ -1,33 +1,23 @@
-<h2>How to submit new version</h2>
+# AR Globe - David Rumsey Maps
 
-<b>Prerequisities:</b>
-1. Visual Studio Community (does not work with Code).
-2. Windows 10 SDK.
-3. Platform SDK (verified is 10.0.10240.0 but it should work with newer).
+<img width="982" alt="Play with historical globes | Explore in detail | Move inside" src="https://github.com/maptiler/arglobe/assets/59284/b9608afb-10bc-42f3-87bc-d6b2c7f37a88">
+<p/>
 
-<b>Unity:</b>
-1. Set project target platform to "UWP".
-2. Set build configuration to "Master".
-3. Build.
+AR Globe allows users to explore historic and old globes from the [David Rumsey map collection](https://www.davidrumsey.com/) in own space with augmented reality.
 
-<b>Visual Studio:</b>
-1. When the Unity build finishes, open the output .sln.
-2. Open "Package.appxmanifest" in the main project.
-3. Check "Packaging" tab to have the correct publisher certificate.
-4. (Optional) Download the correct certificate if necessary by pressing the "Choose Certificate" button.
-5. (Optional) Pick it by pressing "Select from store" (login to the appropriate Microsoft account with the access to the publishing site is needed) and follow the on-screen instructions.
-6. Right click on the main project root -> Publish -> Create App Packages..
-7. Pick the "Microsoft Store as <app_name>" option.
-8. Associate the project with the store submission if not done already
-9. Enable "ARM" as target architecture.
-10. Press "Create" to make the build.
+The old globes float in your room in front of you – you can move towards them and around them using your screen, as well as move inside of them. They can be zoomed in and out and turned as well.
+Seven different globes can be explored in great detail.
 
-<b>MS Store:</b>
-1. Go to https://partner.microsoft.com/ and sign in.
-2. Open "Partner Center" and select "Applications and Games".
-3. Pick the application to update from the list.
-4. In the list of "Submissions", click on "Update".
-5. Go to "Packages".
-6. Upload ".appxupload" file from the build folder and press "Save".
-7. Press "Send to Store".
-8. Wait for the validation and make necessary adjustments in the app when necessary, then repeat the build and upload process.
+AR Globe is both an educational tool for understanding history and a wonderful game at the same time.
+
+Try it:
+- [Apple App Store](https://apps.apple.com/ch/app/ar-globe-david-rumsey-maps/id1315676574) on iPhone and iPad with ARKit
+- [Google Play](https://play.google.com/store/apps/details?id=com.davidrumseymapcollection.arglobe) on Android devices with ARCore
+- [Microsoft Store](https://apps.microsoft.com/detail/9nl4fbbclr8v) on HoloLens 2 with Mixed Reality
+
+It is developed with the latest Unity game engine. Lowres equirectangular textures are embeded in the app even in offline settings, while high-res online tiled textures in Mercator are loaded on demand with patched MB SDK.
+
+All textures were generated with [MapTiler Engine](https://www.maptiler.com/engine/).
+With a bit of extra effort it should be possible to port the Unity code base into Vision Pro, Meta Oculus or other AR/VR platforms.
+
+This R&D project is succeeded by [cross-platform augmented reality maps in JavaScript](https://maptiler.com/ar/) available as component for web developers.
